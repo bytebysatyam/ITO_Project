@@ -81,25 +81,6 @@ const LeadSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Auto classify lead based on data
-LeadSchema.pre("save", function (next) {
-  const lead = this;
-  if (
-    lead.quantity &&
-    lead.destination &&
-    lead.companyName &&
-    lead.mobile &&
-    lead.paymentTerms
-  ) {
-    lead.leadType = "Hot";
-  } else if (lead.quantity && lead.destination && lead.mobile) {
-    lead.leadType = "Warm";
-  } else if (lead.mobile) {
-    lead.leadType = "Cold";
-  } else {
-    lead.leadType = "Incomplete";
-  }
-  next();
-});
+
 
 module.exports = mongoose.model("Lead", LeadSchema);

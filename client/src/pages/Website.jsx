@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import API from "../api/axios";
 
 const COLORS = {
   cream: "#FAF8F3",
@@ -974,10 +975,29 @@ function Contact({ onOpenChat }) {
   const [form, setForm] = useState({ name: "", company: "", phone: "", product: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = () => {
-    if (!form.name || !form.phone) return alert("Please fill name and phone number.");
+  const handleSubmit = async () => {
+  if (!form.name || !form.phone) return alert("Please fill name and phone number.");
+  try {
+    await API.post("/leads", {
+      contactPerson: form.name,
+      companyName: form.company,
+      mobile: form.phone,
+      product: form.product || "General Enquiry",
+      quantity: "Not specified",
+      destination: "Not specified",
+      specialRequirement: form.message,
+      source: "Website Form",
+    });
     setSubmitted(true);
-  };
+  } catch (err) {
+    if (err.response?.data?.message?.includes("Duplicate")) {
+      alert("You already submitted an enquiry recently. We will contact you soon!");
+      setSubmitted(true);
+    } else {
+      alert("Error submitting. Please try again.");
+    }
+  }
+};
 
   return (
     <section id="contact" style={{ background: COLORS.navy, padding: "96px 24px" }}>
@@ -1207,7 +1227,7 @@ function ChatWidget({ open, onClose }) {
   const handleOption = (opt) => sendAnswer(opt);
   const handleSend = () => { if (input.trim()) sendAnswer(input.trim()); };
 
-  const sendAnswer = (val) => {
+  const sendAnswer = async (val) => {
     const q = QUESTIONS[step];
     const newMessages = [...messages, { from: "user", text: val }];
     const newData = { ...data, [q.key]: val };
@@ -1220,6 +1240,24 @@ function ChatWidget({ open, onClose }) {
       newMessages.push({ from: "bot", text: nextQ.text, options: nextQ.options });
       setStep(nextStep);
     } else {
+        // Save lead to backend
+try {
+  await API.post("/leads", {
+    product: newData.product,
+    quantity: newData.quantity,
+    destination: newData.destination,
+    companyName: newData.company,
+    contactPerson: newData.contact.split(" ")[0],
+    mobile: newData.contact.replace(/\D/g, "").slice(-10) || newData.contact,
+    paymentTerms: newData.payment,
+    source: "AI Agent",
+    chatSummary: `Product: ${newData.product}, Quantity: ${newData.quantity}, Destination: ${newData.destination}, Contact: ${newData.contact}, Payment: ${newData.payment}`,
+  });
+} catch (err) {
+  console.log("Lead save error:", err.response?.data?.message);
+}
+
+
       newMessages.push({
         from: "bot",
         text: `Thank you! Here is your enquiry summary:\n\n📦 Product: ${newData.product}\n📏 Quantity: ${newData.quantity}\n📍 Destination: ${newData.destination}\n🏢 Company: ${newData.company}\n📞 Contact: ${newData.contact}\n💰 Payment: ${newData.payment}\n\nYour lead has been created and assigned to our sales team. We will contact you within one business day. You can also reach us on WhatsApp.`,
