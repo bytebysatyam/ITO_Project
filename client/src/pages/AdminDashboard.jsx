@@ -347,6 +347,9 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+        <button onClick={() => navigate("/dispatch")} style={{ background: COLORS.gold, color: COLORS.navy, border: "none", padding: "10px 20px", borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+  🚛 Dispatch & Payment
+</button>
 
         {/* USERS TAB */}
         {activeTab === "users" && (

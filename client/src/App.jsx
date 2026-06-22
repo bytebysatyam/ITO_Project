@@ -4,6 +4,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeCRM from "./pages/EmployeeCRM";
+import DispatchPayment from "./pages/DispatchPayment";
 import Website from "./pages/Website";
 
 export default function App() {
@@ -23,6 +24,11 @@ export default function App() {
               <EmployeeCRM />
             </ProtectedRoute>
           } />
+          <Route path="/dispatch" element={
+  <ProtectedRoute adminOnly={true}>
+    <DispatchPayment />
+  </ProtectedRoute>
+} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
