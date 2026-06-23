@@ -188,6 +188,9 @@ export default function AdminDashboard() {
           <button onClick={() => navigate("/security")} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: COLORS.white, padding: "7px 14px", borderRadius: 6, cursor: "pointer", fontSize: 12 }}>
             🔐 Security
           </button>
+          <button onClick={() => navigate("/documents")} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: COLORS.white, padding: "7px 14px", borderRadius: 6, cursor: "pointer", fontSize: 12 }}>
+  📁 Documents
+</button>
           <button onClick={() => navigate("/")} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: COLORS.white, padding: "7px 14px", borderRadius: 6, cursor: "pointer", fontSize: 12 }}>
             🌐 Website
           </button>

@@ -10,6 +10,8 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+const path = require("path");
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));
@@ -18,6 +20,7 @@ app.use("/api/quotations", require("./routes/quotations"));
 app.use("/api/dispatch", require("./routes/dispatch"));
 app.use("/api/payments", require("./routes/payments"));
 app.use("/api/logs", require("./routes/logs"));
+app.use("/api/documents", require("./routes/documents"));
 
 // Test route
 app.get("/", (req, res) => {

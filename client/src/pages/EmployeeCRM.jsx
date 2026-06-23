@@ -183,6 +183,9 @@ export default function EmployeeCRM() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 13 }}>👤 {user?.name}</span>
+          <button onClick={() => navigate("/documents")} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: COLORS.white, padding: "7px 16px", borderRadius: 6, cursor: "pointer", fontSize: 12 }}>
+            📁 Documents
+          </button>
           <button onClick={handleLogout} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: COLORS.white, padding: "7px 16px", borderRadius: 6, cursor: "pointer", fontSize: 12 }}>
             Logout
           </button>

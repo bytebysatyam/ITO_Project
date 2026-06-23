@@ -6,6 +6,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeCRM from "./pages/EmployeeCRM";
 import DispatchPayment from "./pages/DispatchPayment";
 import SecurityDashboard from "./pages/SecurityDashboard";
+import DocumentVault from "./pages/DocumentVault";
 import Website from "./pages/Website";
 
 export default function App() {
@@ -33,6 +34,11 @@ export default function App() {
           <Route path="/security" element={
             <ProtectedRoute adminOnly={true}>
               <SecurityDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/documents" element={
+            <ProtectedRoute>
+              <DocumentVault />
             </ProtectedRoute>
           } />
           <Route path="*" element={<Navigate to="/" />} />
