@@ -21,6 +21,7 @@ app.use("/api/dispatch", require("./routes/dispatch"));
 app.use("/api/payments", require("./routes/payments"));
 app.use("/api/logs", require("./routes/logs"));
 app.use("/api/documents", require("./routes/documents"));
+app.use("/api/chat", require("./routes/chat"));
 
 // Test route
 app.get("/", (req, res) => {

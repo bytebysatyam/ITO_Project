@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import API from "../api/axios";
 
 const COLORS = {
   cream: "#FAF8F3",
@@ -253,22 +252,22 @@ function Navbar({ onOpenChat }) {
             Request Quotation
           </button>
           <a
-            href="/login"
-            style={{
-              background: "transparent",
-              color: "rgba(255,255,255,0.7)",
-              border: "1px solid rgba(255,255,255,0.25)",
-              padding: "9px 16px",
-              borderRadius: 6,
-              fontWeight: 500,
-              fontSize: 12,
-              letterSpacing: "0.04em",
-              textDecoration: "none",
-              textTransform: "uppercase",
-            }}
-            >
-             Staff Login
-            </a>
+          href="/login"
+  style={{
+    background: "transparent",
+    color: "rgba(255,255,255,0.7)",
+    border: "1px solid rgba(255,255,255,0.25)",
+    padding: "9px 16px",
+    borderRadius: 6,
+    fontWeight: 500,
+    fontSize: 12,
+    letterSpacing: "0.04em",
+    textDecoration: "none",
+    textTransform: "uppercase",
+  }}
+  >
+  Staff Login
+</a>
         </div>
 
         {/* Mobile hamburger */}
@@ -975,29 +974,10 @@ function Contact({ onOpenChat }) {
   const [form, setForm] = useState({ name: "", company: "", phone: "", product: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = async () => {
-  if (!form.name || !form.phone) return alert("Please fill name and phone number.");
-  try {
-    await API.post("/leads", {
-      contactPerson: form.name,
-      companyName: form.company,
-      mobile: form.phone,
-      product: form.product || "General Enquiry",
-      quantity: "Not specified",
-      destination: "Not specified",
-      specialRequirement: form.message,
-      source: "Website Form",
-    });
+  const handleSubmit = () => {
+    if (!form.name || !form.phone) return alert("Please fill name and phone number.");
     setSubmitted(true);
-  } catch (err) {
-    if (err.response?.data?.message?.includes("Duplicate")) {
-      alert("You already submitted an enquiry recently. We will contact you soon!");
-      setSubmitted(true);
-    } else {
-      alert("Error submitting. Please try again.");
-    }
-  }
-};
+  };
 
   return (
     <section id="contact" style={{ background: COLORS.navy, padding: "96px 24px" }}>
@@ -1188,7 +1168,7 @@ function Footer() {
         </div>
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
           <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 12 }}>
-            © 2026 India Trade Overseas. All Rights Reserved. Confidential.
+            © 2026 India Trade Overseas. All Rights Reserved.
           </div>
           <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 12 }}>
             Founder: Md Ramiz Raza Khan
@@ -1199,215 +1179,185 @@ function Footer() {
   );
 }
 
-// ─── AI Chat Widget ───────────────────────────────────
-const QUESTIONS = [
-  { key: "product", text: "Which product are you interested in?", type: "options", options: ["Stone Aggregates", "Coal", "Tea", "Rice", "Agro Products", "Transport & Logistics", "Export Enquiry"] },
-  { key: "quantity", text: "What quantity do you require? (e.g. 100 MT, 500 bags)" },
-  { key: "destination", text: "What is your delivery destination?" },
-  { key: "company", text: "What is your company / firm name?" },
-  { key: "contact", text: "What is your name and mobile / WhatsApp number?" },
-  { key: "payment", text: "What payment terms do you prefer? (e.g. advance, LC, TT)" },
-];
-
+// ─── AI Chat Widget (Real Claude API) ───────────────
 function ChatWidget({ open, onClose }) {
-  const [step, setStep] = useState(0);
-  const [messages, setMessages] = useState([
-    { from: "bot", text: "Welcome to India Trade Overseas! 👋 I'm your digital sales assistant. I'll collect your requirement and create a qualified enquiry for our team. Let's start!" },
-    { from: "bot", text: QUESTIONS[0].text, options: QUESTIONS[0].options },
-  ]);
+  const [messages, setMessages] = useState([]);
+  const [apiMessages, setApiMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [data, setData] = useState({});
-  const [done, setDone] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [leadSaved, setLeadSaved] = useState(false);
   const bottomRef = useRef(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const handleOption = (opt) => sendAnswer(opt);
-  const handleSend = () => { if (input.trim()) sendAnswer(input.trim()); };
-
-  const sendAnswer = async (val) => {
-    const q = QUESTIONS[step];
-    const newMessages = [...messages, { from: "user", text: val }];
-    const newData = { ...data, [q.key]: val };
-    setData(newData);
-    setInput("");
-
-    const nextStep = step + 1;
-    if (nextStep < QUESTIONS.length) {
-      const nextQ = QUESTIONS[nextStep];
-      newMessages.push({ from: "bot", text: nextQ.text, options: nextQ.options });
-      setStep(nextStep);
-    } else {
-        // Save lead to backend
-try {
-  await API.post("/leads", {
-    product: newData.product,
-    quantity: newData.quantity,
-    destination: newData.destination,
-    companyName: newData.company,
-    contactPerson: newData.contact.split(" ")[0],
-    mobile: newData.contact.replace(/\D/g, "").slice(-10) || newData.contact,
-    paymentTerms: newData.payment,
-    source: "AI Agent",
-    chatSummary: `Product: ${newData.product}, Quantity: ${newData.quantity}, Destination: ${newData.destination}, Contact: ${newData.contact}, Payment: ${newData.payment}`,
-  });
-} catch (err) {
-  console.log("Lead save error:", err.response?.data?.message);
-}
-
-
-      newMessages.push({
+    if (open && messages.length === 0) {
+      setMessages([{
         from: "bot",
-        text: `Thank you! Here is your enquiry summary:\n\n📦 Product: ${newData.product}\n📏 Quantity: ${newData.quantity}\n📍 Destination: ${newData.destination}\n🏢 Company: ${newData.company}\n📞 Contact: ${newData.contact}\n💰 Payment: ${newData.payment}\n\nYour lead has been created and assigned to our sales team. We will contact you within one business day. You can also reach us on WhatsApp.`,
-      });
-      setDone(true);
+        text: "Welcome to India Trade Overseas! 👋 I'm your dedicated sales executive. I'm here to help you with Stone Aggregates, Coal, Tea, Rice, Agro Products and Logistics.\n\nHow can I assist you today?",
+      }]);
     }
-    setMessages(newMessages);
+  }, [open]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
+
+  const sendMessage = async (userText) => {
+    if (!userText.trim() || loading) return;
+    const newUserMsg = { from: "user", text: userText };
+    const updatedMessages = [...messages, newUserMsg];
+    setMessages(updatedMessages);
+    setInput("");
+    setLoading(true);
+    const newApiMessages = [...apiMessages, { role: "user", content: userText }];
+    setApiMessages(newApiMessages);
+    try {
+      const response = await fetch("http://localhost:5000/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: newApiMessages }),
+      });
+      const data = await response.json();
+      const botReply = data.reply || "Sorry, I couldn't process that. Please try again.";
+      setMessages([...updatedMessages, { from: "bot", text: botReply }]);
+      setApiMessages([...newApiMessages, { role: "assistant", content: botReply }]);
+      if (!leadSaved && newApiMessages.length >= 6 &&
+        (botReply.toLowerCase().includes("lead") ||
+          botReply.toLowerCase().includes("team will contact") ||
+          botReply.toLowerCase().includes("quotation") ||
+          botReply.toLowerCase().includes("summary"))) {
+        await saveLead(newApiMessages, botReply);
+      }
+    } catch (err) {
+      setMessages([...updatedMessages, { from: "bot", text: "I'm having trouble connecting. Please try again or contact us directly on WhatsApp." }]);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const saveLead = async (msgs, summary) => {
+    try {
+      const fullConversation = msgs.map((m) => `${m.role}: ${m.content}`).join("\n");
+      await fetch("http://localhost:5000/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product: "Enquiry via AI Chat",
+          quantity: "As discussed",
+          destination: "As discussed",
+          contactPerson: "AI Chat Lead",
+          mobile: "0000000000",
+          source: "AI Agent",
+          chatSummary: fullConversation.slice(0, 1000),
+          specialRequirement: summary.slice(0, 500),
+        }),
+      });
+      setLeadSaved(true);
+    } catch (err) {
+      console.log("Lead save error:", err);
+    }
+  };
+
+  const quickOptions = ["Stone Aggregates", "Coal", "Tea", "Rice", "Agro Products", "Transport & Logistics", "Export Enquiry"];
 
   if (!open) return null;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: 24,
-        right: 24,
-        width: 360,
-        maxHeight: 560,
-        background: COLORS.white,
-        borderRadius: 16,
-        boxShadow: "0 24px 80px rgba(0,0,0,0.22)",
-        display: "flex",
-        flexDirection: "column",
-        zIndex: 200,
-        overflow: "hidden",
-        border: `1.5px solid ${COLORS.border}`,
-      }}
-    >
+    <div style={{
+      position: "fixed", bottom: 24, right: 24, width: 380, maxHeight: 580,
+      background: COLORS.white, borderRadius: 16,
+      boxShadow: "0 24px 80px rgba(0,0,0,0.22)",
+      display: "flex", flexDirection: "column", zIndex: 200,
+      overflow: "hidden", border: `1.5px solid ${COLORS.border}`,
+    }}>
       {/* Header */}
       <div style={{ background: COLORS.navy, padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: "50%", background: `linear-gradient(135deg, ${COLORS.gold}, ${COLORS.goldLight})`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13, color: COLORS.navy }}>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: `linear-gradient(135deg, ${COLORS.gold}, ${COLORS.goldLight})`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13, color: COLORS.navy }}>
             AI
           </div>
           <div>
-            <div style={{ color: COLORS.white, fontWeight: 700, fontSize: 13 }}>ITO Sales Assistant</div>
-            <div style={{ color: COLORS.gold, fontSize: 11 }}>● Online now</div>
+            <div style={{ color: COLORS.white, fontWeight: 700, fontSize: 13 }}>ITO Sales Executive</div>
+            <div style={{ color: COLORS.gold, fontSize: 11 }}>● Online — Powered by Claude AI</div>
           </div>
         </div>
         <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.6)", fontSize: 20, cursor: "pointer" }}>✕</button>
       </div>
 
       {/* Messages */}
-      <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 10, background: COLORS.cream }}>
         {messages.map((m, i) => (
-          <div key={i}>
-            <div
-              style={{
-                maxWidth: "85%",
-                marginLeft: m.from === "user" ? "auto" : 0,
-                background: m.from === "user" ? COLORS.navy : COLORS.grayLight,
-                color: m.from === "user" ? COLORS.white : COLORS.charcoal,
-                padding: "10px 14px",
-                borderRadius: m.from === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-                fontSize: 13,
-                lineHeight: 1.6,
-                whiteSpace: "pre-wrap",
-              }}
-            >
+          <div key={i} style={{ maxWidth: "88%", marginLeft: m.from === "user" ? "auto" : 0 }}>
+            <div style={{
+              background: m.from === "user" ? COLORS.navy : COLORS.white,
+              color: m.from === "user" ? COLORS.white : COLORS.charcoal,
+              padding: "10px 14px",
+              borderRadius: m.from === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+              fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+            }}>
               {m.text}
             </div>
-            {m.options && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-                {m.options.map((o) => (
-                  <button
-                    key={o}
-                    onClick={() => handleOption(o)}
-                    style={{
-                      background: "transparent",
-                      border: `1.5px solid ${COLORS.navy}`,
-                      color: COLORS.navy,
-                      padding: "6px 12px",
-                      borderRadius: 20,
-                      fontSize: 12,
-                      cursor: "pointer",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {o}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         ))}
+
+        {/* Quick options at start */}
+        {messages.length === 1 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
+            {quickOptions.map((o) => (
+              <button key={o} onClick={() => sendMessage(o)}
+                style={{ background: "transparent", border: `1.5px solid ${COLORS.navy}`, color: COLORS.navy, padding: "6px 12px", borderRadius: 20, fontSize: 12, cursor: "pointer", fontWeight: 600 }}>
+                {o}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Loading dots */}
+        {loading && (
+          <div style={{ display: "flex", gap: 4, padding: "10px 14px", background: COLORS.white, borderRadius: "14px 14px 14px 4px", width: "fit-content", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+            {[0, 1, 2].map((i) => (
+              <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: COLORS.gold, animation: `bounce 1s ease ${i * 0.2}s infinite` }} />
+            ))}
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
       {/* Input */}
-      {!done && (
-        <div style={{ padding: "12px 16px", borderTop: `1px solid ${COLORS.border}`, display: "flex", gap: 8 }}>
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Type your answer..."
-            style={{
-              flex: 1,
-              border: `1.5px solid ${COLORS.border}`,
-              borderRadius: 8,
-              padding: "9px 12px",
-              fontSize: 13,
-              outline: "none",
-              color: COLORS.charcoal,
-            }}
-          />
-          <button
-            onClick={handleSend}
-            style={{
-              background: COLORS.navy,
-              color: COLORS.white,
-              border: "none",
-              borderRadius: 8,
-              padding: "9px 14px",
-              cursor: "pointer",
-              fontWeight: 700,
-              fontSize: 13,
-            }}
-          >
-            →
-          </button>
-        </div>
-      )}
-      {done && (
-        <div style={{ padding: 16, borderTop: `1px solid ${COLORS.border}`, display: "flex", gap: 8 }}>
-          <a
-            href="https://wa.me/91XXXXXXXXXX"
-            style={{
-              flex: 1,
-              background: "#25D366",
-              color: COLORS.white,
-              textDecoration: "none",
-              textAlign: "center",
-              padding: "10px",
-              borderRadius: 8,
-              fontWeight: 700,
-              fontSize: 13,
-            }}
-          >
-            📱 WhatsApp Us
-          </a>
-          <button
-            onClick={() => { setMessages([{ from: "bot", text: "Welcome back! Let's start a new enquiry." }, { from: "bot", text: QUESTIONS[0].text, options: QUESTIONS[0].options }]); setStep(0); setData({}); setDone(false); }}
-            style={{ background: COLORS.grayLight, border: "none", borderRadius: 8, padding: "10px 14px", cursor: "pointer", fontSize: 12, color: COLORS.navy, fontWeight: 600 }}
-          >
-            New Enquiry
-          </button>
-        </div>
-      )}
+      <div style={{ padding: "12px 16px", borderTop: `1px solid ${COLORS.border}`, display: "flex", gap: 8, background: COLORS.white }}>
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage(input)}
+          placeholder="Type your message..."
+          disabled={loading}
+          style={{ flex: 1, border: `1.5px solid ${COLORS.border}`, borderRadius: 8, padding: "9px 12px", fontSize: 13, outline: "none", color: COLORS.charcoal }}
+        />
+        <button onClick={() => sendMessage(input)} disabled={loading || !input.trim()}
+          style={{ background: loading ? "#E5E7EB" : COLORS.navy, color: COLORS.white, border: "none", borderRadius: 8, padding: "9px 14px", cursor: loading ? "not-allowed" : "pointer", fontWeight: 700, fontSize: 13 }}>
+          →
+        </button>
+      </div>
+
+      {/* WhatsApp + Human Handover */}
+      <div style={{ padding: "8px 16px 12px", borderTop: `1px solid ${COLORS.border}`, display: "flex", gap: 8, background: COLORS.white }}>
+        <a href="https://wa.me/91XXXXXXXXXX?text=Hi, I need a quotation from India Trade Overseas"
+          target="_blank" rel="noreferrer"
+          style={{ flex: 1, background: "#25D366", color: COLORS.white, textDecoration: "none", textAlign: "center", padding: "8px", borderRadius: 8, fontWeight: 700, fontSize: 12 }}>
+          📱 WhatsApp
+        </a>
+        <button onClick={() => sendMessage("I want to speak with a human agent")}
+          style={{ flex: 1, background: COLORS.grayLight, color: COLORS.navy, border: "none", borderRadius: 8, padding: "8px", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
+          👤 Talk to Human
+        </button>
+      </div>
+
+      <style>{`
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+      `}</style>
     </div>
   );
 }
