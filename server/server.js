@@ -17,6 +17,7 @@ app.use("/api/leads", require("./routes/leads"));
 app.use("/api/quotations", require("./routes/quotations"));
 app.use("/api/dispatch", require("./routes/dispatch"));
 app.use("/api/payments", require("./routes/payments"));
+app.use("/api/logs", require("./routes/logs"));
 
 // Test route
 app.get("/", (req, res) => {

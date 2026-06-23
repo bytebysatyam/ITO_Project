@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import AdminDashboard from "./pages/AdminDashboard";
 import EmployeeCRM from "./pages/EmployeeCRM";
 import DispatchPayment from "./pages/DispatchPayment";
+import SecurityDashboard from "./pages/SecurityDashboard";
 import Website from "./pages/Website";
 
 export default function App() {
@@ -25,10 +26,15 @@ export default function App() {
             </ProtectedRoute>
           } />
           <Route path="/dispatch" element={
-  <ProtectedRoute adminOnly={true}>
-    <DispatchPayment />
-  </ProtectedRoute>
-} />
+            <ProtectedRoute adminOnly={true}>
+              <DispatchPayment />
+            </ProtectedRoute>
+          } />
+          <Route path="/security" element={
+            <ProtectedRoute adminOnly={true}>
+              <SecurityDashboard />
+            </ProtectedRoute>
+          } />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>

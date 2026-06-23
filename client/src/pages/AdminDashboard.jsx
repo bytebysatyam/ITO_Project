@@ -180,9 +180,18 @@ export default function AdminDashboard() {
             <div style={{ color: COLORS.gold, fontSize: 11 }}>India Trade Overseas</div>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 13 }}>👤 {user?.name}</span>
-          <button onClick={handleLogout} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: COLORS.white, padding: "7px 16px", borderRadius: 6, cursor: "pointer", fontSize: 12 }}>
+          <button onClick={() => navigate("/dispatch")} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: COLORS.white, padding: "7px 14px", borderRadius: 6, cursor: "pointer", fontSize: 12 }}>
+            🚛 Dispatch & Payment
+          </button>
+          <button onClick={() => navigate("/security")} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: COLORS.white, padding: "7px 14px", borderRadius: 6, cursor: "pointer", fontSize: 12 }}>
+            🔐 Security
+          </button>
+          <button onClick={() => navigate("/")} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: COLORS.white, padding: "7px 14px", borderRadius: 6, cursor: "pointer", fontSize: 12 }}>
+            🌐 Website
+          </button>
+          <button onClick={handleLogout} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: COLORS.white, padding: "7px 14px", borderRadius: 6, cursor: "pointer", fontSize: 12 }}>
             Logout
           </button>
         </div>
@@ -347,9 +356,6 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-        <button onClick={() => navigate("/dispatch")} style={{ background: COLORS.gold, color: COLORS.navy, border: "none", padding: "10px 20px", borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
-  🚛 Dispatch & Payment
-</button>
 
         {/* USERS TAB */}
         {activeTab === "users" && (

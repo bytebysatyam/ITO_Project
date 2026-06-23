@@ -16,9 +16,31 @@ router.post("/login", async (req, res) => {
     if (!user) return res.status(401).json({ message: "Invalid email or password" });
     if (!user.isActive) return res.status(403).json({ message: "Account suspended." });
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(401).json({ message: "Invalid email or password" });
+    if (!isMatch) {
+      const { createLog } = require("./logs");
+      await createLog({
+        userEmail: email,
+        action: "Failed Login",
+        description: `Failed login attempt for ${email}`,
+        ipAddress: req.ip,
+        severity: "High",
+      });
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
     user.lastLogin = new Date();
     await user.save();
+
+    // Log successful login
+    const { createLog } = require("./logs");
+    await createLog({
+      user: user._id,
+      userEmail: user.email,
+      action: "Login",
+      description: `${user.name} logged in successfully`,
+      ipAddress: req.ip,
+      severity: "Low",
+    });
+
     res.json({
       _id: user._id,
       name: user.name,
